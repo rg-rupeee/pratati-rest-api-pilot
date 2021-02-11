@@ -1,0 +1,17 @@
+{
+  "name": "api-rg",
+  "version": "1.0.0",
+  "description": "api for pilot test of PRATATI",
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon server.js"
+  },
+  "keywords": [
+    "api"
+  ],
+  "author": "Rupesh Garhwal <rupeshgarhwal3920@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
