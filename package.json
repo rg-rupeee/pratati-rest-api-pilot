@@ -4,7 +4,9 @@
   "description": "api for pilot test of PRATATI",
   "main": "server.js",
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "start:prod": "SET NODE_ENV=production&nodemon server.js",
+    "debug": "ndb server.js"
   },
   "keywords": [
     "api"
@@ -15,6 +17,7 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "mongoose": "^5.11.15",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "validator": "^13.5.2"
   }
 }
