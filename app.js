@@ -10,6 +10,12 @@ const userRouter = require('./routes/userRoutes');
 app = express();
 
 
+// logging the request to console if we are in development mode
+if(process.env.NODE_ENV === 'development'){
+  console.log(process.env.NODE_ENV);  
+}
+
+
 // middleware to parse the req and res into json
 app.use(express.json());  
 
