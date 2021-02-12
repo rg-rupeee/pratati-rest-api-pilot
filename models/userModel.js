@@ -33,9 +33,24 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please provide what you do"],
   },
+  active: {
+    // if false then user has deactivated his/her account
+    type: Boolean,
+    default: true,
+    select: false,
+  },
 });
 
-//creating a model from schema
+// query middleware : do not select tours in which active = false
+userSchema.pre(/^find/, function (next) {
+  // using the regular js function to access current query
+
+  this.find({ active: { $ne: false } });
+
+  next();
+});
+
+// creating a model from schema
 const User = mongoose.model("User", userSchema);
 
 //exporting the model as default export

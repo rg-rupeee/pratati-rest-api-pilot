@@ -1,119 +1,95 @@
+// requiring the AppError class
+const AppError = require("../utils/appError");
+
 // requiring the mongoose's user model
 const User = require("./../models/userModel");
 
+// requiring the APIFeatures class
+const APIFeatures = require("./../utils/apiFeatures");
+
+// requiring the catchAsync function
+const catchAsync = require("./../utils/catchAsync");
+
 // export getAllUsers function
-exports.getAllUsers = async (req, res) => {
+exports.getAllUsers = catchAsync(async (req, res, next) => {
+  // creating the query
+  const features = new APIFeatures(User.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+  const users = await features.query;
+
   // sending the response
+  res.status(200).json({
+    status: "success",
+    results: users.length,
+    data: {
+      users,
+    },
+  });
+});
 
-  try {
-    const users = await User.find();
+// export createUser function
+exports.createUser = catchAsync(async (req, res, next) => {
+  const newUser = await User.create(req.body);
 
-    res.status(200).json({
-      status: "success",
-      results: users.length,
-      data: {
-        users,
-      },
-    });
-  } catch (err) {
-    res.status(404).json({
-      status: "fail",
-      message: err,
-    });
+  res.status(201).json({
+    status: "success",
+    data: {
+      newUser,
+    },
+  });
+});
+
+// export updateUser function
+exports.updateUser = catchAsync(async (req, res, next) => {
+  const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
+  // adding a 404 error if user does not exist
+  if (!users) {
+    return next(new AppError("No User found with that id", 404));
   }
-};
 
-exports.createUser = async (req, res) => {
-  try {
-    const newUser = await User.create(req.body);
+  res.status(200).json({
+    status: "success",
+    data: {
+      user,
+    },
+  });
+});
 
-    res.status(201).json({
-      status: "success",
-      data: {
-        newUser,
-      },
-    });
-  } catch (err) {
-    res.status(404).json({
-      status: "fail",
-      message: err,
-    });
+// export getUser function
+exports.getUser = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+
+  // adding a 404 error if user does not exist
+  if(!user){
+    return next(new AppError('No User found with that id', 404));
   }
-};
 
-exports.updateUser = async (req, res) => {
-  try {
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+  res.status(200).json({
+    status: "success",
+    data: {
+      user,
+    },
+  });
+});
 
-    if (!user) {
-      return res.status(404).json({
-        status: "fail",
-        message: "No user found with that id",
-      });
-    }
+// export deleteUsers function
+exports.deleteUser = catchAsync(async (req, res, next) => {
+  const user = await User.findByIdAndDelete(req.params.id);
 
-    res.status(200).json({
-      status: "success",
-      data: {
-        user,
-      },
-    });
-  } catch (err) {
-    res.status(404).json({
-      status: "fail",
-      message: err,
-    });
+  // adding a 404 error if user does not exist
+  if(!user){
+    return next(new AppError('No User found with that id', 404));
   }
-};
 
-exports.getUser = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-
-    if (!user) {
-      return res.status(404).json({
-        status: "fail",
-        message: "No user found with that id",
-      });
-    }
-
-    res.status(200).json({
-      status: "success",
-      data: {
-        user,
-      },
-    });
-  } catch (err) {
-    res.status(404).json({
-      status: "fail",
-      message: err,
-    });
-  }
-};
-
-exports.deleteUser = async (req, res) => {
-  try{
-    const user = await User.findByIdAndDelete(req.params.id);
-
-    if (!user) {
-      return res.status(404).json({
-        status: "fail",
-        message: "No user found with that id",
-      });
-    }
-
-    res.status(204).json({
-      status: "success",
-      data: null
-    });
-  }
-  catch(err){
-    res.status(404).json({
-      status: "fail",
-      message: err,
-    });
-  }
-};
+  res.status(204).json({
+    status: "success",
+    data: null,
+  });
+});
