@@ -4,7 +4,7 @@ const dotenv = require("dotenv");
 // requiring the mongoose package
 const mongoose = require("mongoose");
 
-
+// adding event listner to listen "uncaughtException"
 process.on('uncaughtException', err => {
   console.log('ERR: UNCAUGHT EXCEPTION!  Shutting down...');
   console.log(err.name, err.message);
@@ -44,6 +44,7 @@ const server = app.listen(port, () => {
   console.log("App running on the port : ", port);
 });
 
+// adding event listner to listen "unhandledRejection"
 process.on('unhandledRejection', err => {
   console.log('ERR: UNHANDLED REJECTION! Shutting down...');
   console.log(err.name, err.message);

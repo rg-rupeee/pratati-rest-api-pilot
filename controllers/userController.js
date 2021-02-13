@@ -32,6 +32,7 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 
 // export createUser function
 exports.createUser = catchAsync(async (req, res, next) => {
+
   const newUser = await User.create(req.body);
 
   res.status(201).json({

@@ -3,9 +3,15 @@ const express = require("express");
 
 // requiring the controller functions
 const userController = require("./../controllers/userController");
+const authController = require("./../controllers/authController");
 
 // creating a new router object
 const router = express.Router();
+
+router.post("/signup", authController.signup);
+router.post("/login", authController.login);
+router.patch("/updateMe", authController.updateMe);
+router.delete("/deleteMe", authController.deleteMe);
 
 // defining the routes
 router
