@@ -52,7 +52,7 @@ exports.updateUser = catchAsync(async (req, res, next) => {
   }
 
   // we cannot change user role here
-  if(req.body.role!="user"){
+  if(req.body.role && req.body.role!="user"){
     return next(new AppError("cannot change user role"));
   }
 

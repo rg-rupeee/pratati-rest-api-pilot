@@ -11,6 +11,10 @@ const catchAsync = require("./../utils/catchAsync");
 const jwt = require("jsonwebtoken");
 const { findOne } = require("./../models/userModel");
 
+// requiring promisify function from builtin util module
+const { promisify } = require('util');
+
+
 // signup = user registration
 exports.signup = catchAsync(async (req, res, next) => {
   // user cannot set itself a role
@@ -52,30 +56,30 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!password) {
     return next(new AppError("please provide password", 400));
   }
-  
+
   // check if user exists
   let user;
-  
+
   // if email is provided then find user using email
-  if(email){
-    user = await User.findOne({email}).select('+password');
-    if(!user){
-      return next(new AppError('Incorrect email', 401));
+  if (email) {
+    user = await User.findOne({ email }).select("+password");
+    if (!user) {
+      return next(new AppError("Incorrect email", 401));
     }
   }
-  
-  // if phone is provided then find user using phone iff user not found 
-  if(phone && !user){
-    user = await User.findOne({phone}).select('+password');
-    if(!user){
-      return next(new AppError('Incorrect phone number', 401));
+
+  // if phone is provided then find user using phone iff user not found
+  if (phone && !user) {
+    user = await User.findOne({ phone }).select("+password");
+    if (!user) {
+      return next(new AppError("Incorrect phone number", 401));
     }
   }
 
   // match the provided password with our encrypted password using instance methods
-  if(!(await user.correctPassword(password, user.password))){
+  if (!(await user.correctPassword(password, user.password))) {
     // return error if both password does not matches
-    return next(new AppError('Incorrect password', 401));
+    return next(new AppError("Incorrect password", 401));
   }
 
   // if everything is ok send jwt token to client
@@ -88,10 +92,42 @@ exports.login = catchAsync(async (req, res, next) => {
   // console.log(user);
   user.password = undefined;
   res.status(200).json({
-    status: 'success',
+    status: "success",
     token,
-    user
+    user,
   });
+});
+
+// protect: check if user is logged in with correct credentials before granting user permission to protected route
+exports.protect = catchAsync(async (req, res, next) => {
+  // user will send token with header
+
+  // checking if token exists
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  // return error if token not found
+  if(!token){
+    return next(new AppError('You are not logged in! Please login'));
+  }
+
+  // verifying token
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+  // check if user exists
+  const currentUser = await User.findById(decoded.id);
+  if(!currentUser){
+    return next(new AppError('user belonging to this jwt token does not exists'));
+  }
+
+  // grant access to protected route
+  req.user = currentUser;
+  next();
 });
 
 // user updating his/her data
