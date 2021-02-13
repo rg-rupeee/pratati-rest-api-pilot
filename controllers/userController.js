@@ -45,13 +45,24 @@ exports.createUser = catchAsync(async (req, res, next) => {
 
 // export updateUser function
 exports.updateUser = catchAsync(async (req, res, next) => {
+
+  // we cannot change user password here
+  if(req.body.password || req.body.passwordConfirm){
+    return next(new AppError("cannot change userPassword"));
+  }
+
+  // we cannot change user role here
+  if(req.body.role!="user"){
+    return next(new AppError("cannot change user role"));
+  }
+
   const user = await User.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
   });
 
   // adding a 404 error if user does not exist
-  if (!users) {
+  if (!user) {
     return next(new AppError("No User found with that id", 404));
   }
 
