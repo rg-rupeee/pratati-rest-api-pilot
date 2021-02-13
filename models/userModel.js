@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 const validator = require("validator");
 
 // requiring the bcrypt module
-const bycrpt = require('bcryptjs');
+const bycrpt = require("bcryptjs");
 
 // creating a schema for users
 const userSchema = new mongoose.Schema({
@@ -15,6 +15,9 @@ const userSchema = new mongoose.Schema({
     trim: true,
     maxlength: 50,
   },
+  gender: {
+    type: String,
+  },
   email: {
     type: String,
     unique: true,
@@ -22,11 +25,9 @@ const userSchema = new mongoose.Schema({
     validate: [validator.isEmail, "Provided email is not valid"],
   },
   phone: {
-    type: Number,
+    type: String,
     requried: [true, "A worker must have a mobile number"],
-    unique: true
-    // max: [10, "Mobile number must consist 10 digits"],
-    // min: [10, "Mobile number must consist 10 digits"],
+    unique: true,
   },
   location: {
     type: String,
@@ -67,17 +68,14 @@ const userSchema = new mongoose.Schema({
   role: {
     type: String,
     default: "user",
-    enum: {
-      values: ["user", "admin", "employee"],
-      message: "Must be either user, admin, employee",
-    },
-  },
+    enum: ["user", "admin", "teamMember"],
+  }
 });
 
 // pre save middleware to encrypt passwords
-userSchema.pre('save', async function(next){
+userSchema.pre("save", async function (next) {
   // check if password feild is actually modified
-  if(!this.isModified('password')) return next();
+  if (!this.isModified("password")) return next();
 
   //encrypting the password
   this.password = await bycrpt.hash(this.password, 12);
@@ -86,26 +84,31 @@ userSchema.pre('save', async function(next){
   this.passwordConfirm = undefined;
 
   next();
-})
+});
 
 // pre query middleware : runs before all find queries
 userSchema.pre(/^find/, function (next) {
   // using the regular js function to access current query
 
   // do not select tours in which active = false and role is admin or employee
-  this.find({ $and: [{ active: { $ne: false } }, { role: { $ne: "admin" } }, {role: { $ne: 'employee'}}] });
+  this.find({ active: { $ne: false } });
+  
+  // $and: [
+  //   { active: { $ne: false } },
+  //   { role: { $ne: "admin" } },
+  //   { role: { $ne: "teamMember" } },
+  // ],
 
   next();
 });
 
 // instance methord: to check if given password is correct
-userSchema.methods.correctPassword = async function(
+userSchema.methods.correctPassword = async function (
   candidatePassword,
   userPassword
-){
+) {
   return await bycrpt.compare(candidatePassword, userPassword);
-}
-
+};
 
 // creating a model from schema
 const User = mongoose.model("User", userSchema);

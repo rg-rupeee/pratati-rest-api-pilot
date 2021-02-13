@@ -12,8 +12,7 @@ const jwt = require("jsonwebtoken");
 const { findOne } = require("./../models/userModel");
 
 // requiring promisify function from builtin util module
-const { promisify } = require('util');
-
+const { promisify } = require("util");
 
 // signup = user registration
 exports.signup = catchAsync(async (req, res, next) => {
@@ -108,12 +107,12 @@ exports.protect = catchAsync(async (req, res, next) => {
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
   ) {
-    token = req.headers.authorization.split(' ')[1];
+    token = req.headers.authorization.split(" ")[1];
   }
 
   // return error if token not found
-  if(!token){
-    return next(new AppError('You are not logged in! Please login'));
+  if (!token) {
+    return next(new AppError("You are not logged in! Please login", 401));
   }
 
   // verifying token
@@ -121,14 +120,33 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   // check if user exists
   const currentUser = await User.findById(decoded.id);
-  if(!currentUser){
-    return next(new AppError('user belonging to this jwt token does not exists'));
+  if (!currentUser) {
+    return next(
+      new AppError("user belonging to this jwt token does not exists")
+    );
   }
 
   // grant access to protected route
   req.user = currentUser;
   next();
 });
+
+// restricting: only allowing the certain users to access the routes
+exports.restrictTo = (...roles) => {
+  // this function gets an array: roles ['admin', 'user', ...]
+
+  // using closure to access roles array
+
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      // if user does not belong to roles array then he/she cannot access the further routes
+      return next(
+        new AppError("you do not have permission to access this route", 403)
+      );
+    }
+    next();
+  };
+};
 
 // user updating his/her data
 exports.updateMe = catchAsync(async (req, res, next) => {});
